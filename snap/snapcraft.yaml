@@ -17,7 +17,7 @@ confinement: strict
 base: core24
 assumes:
   - snapd2.55 # >=2.55 needed for the cups interface
-version: '4.6.0'
+version: '4.6.5'
 platforms:
   amd64:
     build-on: [amd64]
@@ -49,8 +49,12 @@ plugs:
     default-provider: cups
     target: $SNAP_DATA/foo
 
+layout:
+  /usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/alsa-lib:
+    symlink: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/alsa-lib
+
 parts:
-  musescore:
+  musescore-app:
     plugin: cmake
     source: https://github.com/musescore/MuseScore.git
     source-tag: v$SNAPCRAFT_PROJECT_VERSION
@@ -64,7 +68,15 @@ parts:
     build-packages:
       - libsndfile1-dev
       - zlib1g-dev
+      - libxkbcommon-dev
+      - libduktape207
     override-build: |
       craftctl default
       sed -i 's|Icon=mscore|Icon=${SNAP}/usr/share/icons/hicolor/512x512/apps/mscore.png|' $CRAFT_PART_INSTALL/usr/share/applications/org.musescore.MuseScore.desktop
-      sed -i 's|Exec=mscore %U|Exec=${SNAP}/usr/bin/mscore %U|' $CRAFT_PART_INSTALL/usr/share/applications/org.musescore.MuseScore.desktop
+
+  dependencies:
+    after: [musescore-app]
+    plugin: nil
+    stage-packages:
+      - libasound2t64
+      - libasound2-plugins
